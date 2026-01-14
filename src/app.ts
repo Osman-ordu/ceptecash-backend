@@ -2,8 +2,9 @@ import express, { Application } from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import { errorMiddleware } from './middlewares/error.middleware';
-import userRoutes from './modules/user/user.routes';
-import quickTransactionsRoutes from './modules/transactions/quickTransactions/quickTransactions.routes';
+import quickTransactionsRoutes from './modules/transaction/quickTransactions/quickTransactions.routes';
+import transactionRoutes from './modules/transaction/transaction.routes';
+import firebaseAuthRoutes from './modules/auth/auth.routes';
 import { env } from './config/env';
 
 const app: Application = express();
@@ -26,8 +27,10 @@ if (env.NODE_ENV === 'development') {
 }
 
 // Routes
-app.use('/api/users', userRoutes);
 app.use('/api/transactions/quick-transaction', quickTransactionsRoutes);
+app.use('/transactions', transactionRoutes);
+app.use('/auth', firebaseAuthRoutes);
+app.use('/api', firebaseAuthRoutes); // /api/register-profile için
 
 // Health check
 app.get('/health', (req, res) => {

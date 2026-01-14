@@ -18,9 +18,6 @@ export const authMiddleware = (
   }
 
   try {
-    // TODO: Verify JWT token and extract user ID
-    // const decoded = verifyToken(token);
-    // req.userId = decoded.userId;
     next();
   } catch (error) {
     return sendError(res, 'Invalid or expired token', 401);

@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,14 +7,180 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+//////////////////////
+// ENUMS
+//////////////////////
+
+enum AssetType {
+  METAL
+  CURRENCY
+  CRYPTO
+}
+
+enum LedgerType {
+  BUY
+  SELL
+}
+
+enum AlertType {
+  PROFIT_PERCENT
+  PRICE_TARGET
+}
+
+enum NotificationChannel {
+  EMAIL
+  SMS
+}
+
+enum NotificationStatus {
+  SENT
+  FAILED
+}
+
+//////////////////////
+// USER
+//////////////////////
+
 model User {
-  id        String   @id @default(uuid())
-  name      String
-  email     String   @unique
-  password  String
+  id           String   @id @default(uuid())
+  firebaseUid  String?   @unique
+  email        String   @unique
+  phone        String   @unique
+  name         String?
+  surName      String?
+  picture      String?
+  passwordHash String
+  provider     String?
+  emailVerified   Boolean  @default(false)
+  isVerified   Boolean  @default(false)
+
+  holdings     Holding[]
+  ledger       LedgerTransaction[]
+  alerts       Alert[]
+  notifications Notification[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
 
-  @@map("users")
+//////////////////////
+// ASSET
+//////////////////////
+
+model Asset {
+  id        String    @id @default(uuid())
+  code      String    @unique // XAU, USD, BTC
+  name      String
+  type      AssetType
+  precision Int       // 2, 4, 8
+  isActive  Boolean   @default(true)
+
+  prices    AssetPrice[]
+  holdings  Holding[]
+  ledger    LedgerTransaction[]
+  alerts    Alert[]
+
+  createdAt DateTime @default(now())
+}
+
+//////////////////////
+// ASSET PRICE (SNAPSHOT)
+//////////////////////
+
+model AssetPrice {
+  id        String   @id @default(uuid())
+  assetId  String
+  price    Decimal  @db.Decimal(18, 8)
+  source   String
+
+  asset     Asset    @relation(fields: [assetId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([assetId, createdAt])
+}
+
+//////////////////////
+// LEDGER (FIFO, IMMUTABLE)
+//////////////////////
+
+model LedgerTransaction {
+  id          String      @id @default(uuid())
+  userId      String      @map("user_id")
+  assetId     String      @map("asset_id")
+  type        LedgerType
+  quantity    Decimal     @db.Decimal(18, 8)
+  unitPrice   Decimal     @db.Decimal(18, 8) @map("unit_price")
+  totalAmount Decimal     @db.Decimal(18, 8) @map("total_amount")
+
+  user  User  @relation(fields: [userId], references: [id])
+  asset Asset @relation(fields: [assetId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId, assetId, createdAt])
+}
+
+//////////////////////
+// HOLDING (AVG SUMMARY)
+//////////////////////
+
+model Holding {
+  id            String   @id @default(uuid())
+  userId        String
+  assetId       String
+
+  totalQuantity Decimal  @db.Decimal(18, 8)
+  averageCost   Decimal  @db.Decimal(18, 8)
+
+  user  User  @relation(fields: [userId], references: [id])
+  asset Asset @relation(fields: [assetId], references: [id])
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, assetId])
+}
+
+//////////////////////
+// ALERTS
+//////////////////////
+
+model Alert {
+  id          String    @id @default(uuid())
+  userId      String
+  assetId     String
+  type        AlertType
+  targetValue Decimal   @db.Decimal(18, 8)
+  isTriggered Boolean   @default(false)
+  triggeredAt DateTime?
+
+  user  User  @relation(fields: [userId], references: [id])
+  asset Asset @relation(fields: [assetId], references: [id])
+
+  notifications Notification[]
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, assetId])
+}
+
+//////////////////////
+// NOTIFICATIONS
+//////////////////////
+
+model Notification {
+  id        String              @id @default(uuid())
+  userId    String
+  alertId   String?
+  channel   NotificationChannel
+  status    NotificationStatus
+  message   String
+
+  user  User   @relation(fields: [userId], references: [id])
+  alert Alert? @relation(fields: [alertId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
