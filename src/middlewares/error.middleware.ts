@@ -9,17 +9,14 @@ export const errorMiddleware = (
 ): Response => {
   console.error('Error:', err);
 
-  // Prisma errors
   if (err.name === 'PrismaClientKnownRequestError') {
     return sendError(res, 'Database error occurred', 500, err.message);
   }
 
-  // Validation errors
   if (err.name === 'ValidationError' || err.name === 'ZodError') {
     return sendError(res, 'Validation error', 400, err.message);
   }
 
-  // Default error
   return sendError(
     res,
     err.message || 'Internal server error',
