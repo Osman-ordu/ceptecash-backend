@@ -1,17 +1,25 @@
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import quickTransactionsService from '../quickTransactions.service';
-import { sendSuccess, sendError } from '../../../../utils/response';
+import { sendSuccess, sendError } from '../../../utils/response';
 import { createQuickTransactionSchema } from '../quickTransactions.schema';
+import { AuthRequest } from '../../../middlewares/auth.middleware';
 
 export const createQuickTransaction = async (
-  req: Request,
+  req: AuthRequest,
   res: Response,
   next: NextFunction
 ) => {
   try {
+    const userId = req.userId;
+    
+    if (!userId) {
+      return sendError(res, 'User not authenticated', 401);
+    }
+
     const validatedData = createQuickTransactionSchema.parse(req.body);
     const transaction = await quickTransactionsService.createQuickTransaction(
-      validatedData
+      validatedData,
+      userId
     );
     return sendSuccess(
       res,

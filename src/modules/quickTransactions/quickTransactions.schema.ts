@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 export interface QuickTransaction {
   id: string;
+  userId: string; // User'a özel transaction'lar için
   side: 'buy' | 'sell';
   baseAsset: string;
   quoteAsset: string;

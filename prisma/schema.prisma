@@ -37,6 +37,11 @@ enum NotificationStatus {
   FAILED
 }
 
+enum TransactionSide {
+  BUY
+  SELL
+}
+
 //////////////////////
 // USER
 //////////////////////
@@ -58,6 +63,7 @@ model User {
   ledger       LedgerTransaction[]
   alerts       Alert[]
   notifications Notification[]
+  quickTransactions QuickTransaction[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -184,3 +190,21 @@ model Notification {
   @@index([userId])
 }
 
+model QuickTransaction {
+  id              String          @id @default(uuid())
+  userId          String          @map("user_id")
+  side            TransactionSide
+  baseAsset       String          @map("base_asset")
+  quoteAsset      String          @map("quote_asset")
+  amount          Decimal         @db.Decimal(18, 8)
+  total           Decimal         @db.Decimal(18, 8)
+  transactionDate DateTime        @default(now()) @map("transaction_date")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId, transactionDate])
+  @@index([userId])
+}

@@ -55,10 +55,12 @@ export const firebaseAuth = async (req: Request, res: Response) => {
         data: {
           emailVerified: email_verified ?? false,
           isVerified: email_verified ?? false,
+          // name ve picture için schema'ya alan eklendikten sonra buraya eklenecek
         },
       });
     }
 
+    // passwordHash'i response'dan çıkar
     const { passwordHash, ...userWithoutPassword } = user;
 
     return sendSuccess(res, 'Authentication successful', userWithoutPassword);
@@ -117,7 +119,7 @@ export const registerProfile = async (req: Request, res: Response) => {
     }
 
     const { uid, name, surname, phone, email } = validationResult.data;
-        const normalizedPhone = normalizePhoneNumber(phone);
+    const normalizedPhone = normalizePhoneNumber(phone);
 
     let decodedToken;
     try {
@@ -199,5 +201,59 @@ export const registerProfile = async (req: Request, res: Response) => {
       500,
       process.env.NODE_ENV === 'development' ? error.message : undefined
     );
+  }
+};
+
+export const refreshToken = async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader?.startsWith('Bearer ')) {
+      return sendError(res, 'Token missing', 401);
+    }
+
+    const token = authHeader.split(' ')[1];
+
+    if (!token) {
+      return sendError(res, 'Token missing', 401);
+    }
+
+    let decodedToken;
+    try {
+      decodedToken = await firebaseAdmin.auth().verifyIdToken(token);
+    } catch (error: any) {
+      if (error.code === 'auth/id-token-expired') {
+        return sendError(res, 'Token expired. Please refresh on client side.', 401);
+      }
+      return sendError(res, 'Invalid token', 401);
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { firebaseUid: decodedToken.uid },
+      select: {
+        id: true,
+        email: true,
+        firebaseUid: true,
+        name: true,
+        surName: true,
+        picture: true,
+        emailVerified: true,
+        isVerified: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!user) {
+      return sendError(res, 'User not found', 404);
+    }
+
+    return sendSuccess(res, 'Token refreshed successfully', {
+      user,
+      message: 'Use Firebase SDK to get new ID token on client side',
+    });
+  } catch (error: any) {
+    console.error('Refresh token error:', error);
+    return sendError(res, 'Internal server error', 500);
   }
 };

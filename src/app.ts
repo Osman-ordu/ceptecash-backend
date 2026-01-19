@@ -2,7 +2,7 @@ import express, { Application } from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import { errorMiddleware } from './middlewares/error.middleware';
-import quickTransactionsRoutes from './modules/transaction/quickTransactions/quickTransactions.routes';
+import quickTransactionsRoutes from './modules/quickTransactions/quickTransactions.routes';
 import transactionRoutes from './modules/transaction/transaction.routes';
 import firebaseAuthRoutes from './modules/auth/auth.routes';
 import { env } from './config/env';

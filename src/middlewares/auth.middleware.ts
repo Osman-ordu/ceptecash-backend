@@ -1,25 +1,69 @@
 import { Request, Response, NextFunction } from 'express';
 import { sendError } from '../utils/response';
+import { firebaseAdmin } from '../lib/firebase';
+import { prisma } from '../lib/prisma';
 
 export interface AuthRequest extends Request {
   userId?: string;
+  user?: {
+    id: string;
+    email: string;
+    firebaseUid: string;
+  };
 }
 
-export const authMiddleware = (
+export const authMiddleware = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction
-): Response | void => {
-  // TODO: Implement JWT token verification
-  const token = req.headers.authorization?.replace('Bearer ', '');
-
-  if (!token) {
-    return sendError(res, 'Authentication required', 401);
-  }
-
+): Promise<Response | void> => {
   try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader?.startsWith('Bearer ')) {
+      return sendError(res, 'Token missing', 401);
+    }
+
+    const token = authHeader.split(' ')[1];
+
+    if (!token) {
+      return sendError(res, 'Token missing', 401);
+    }
+
+    // Firebase token doğrulama
+    const decodedToken = await firebaseAdmin.auth().verifyIdToken(token);
+    const firebaseUid = decodedToken.uid;
+
+    // Veritabanından kullanıcıyı bul
+    const user = await prisma.user.findUnique({
+      where: { firebaseUid },
+      select: {
+        id: true,
+        email: true,
+        firebaseUid: true,
+      },
+    });
+
+    if (!user) {
+      return sendError(res, 'User not found', 404);
+    }
+
+    // Request'e user bilgisini ekle
+    req.userId = user.id;
+    req.user = user;
+
     next();
-  } catch (error) {
+  } catch (error: any) {
+    console.error('Auth middleware error:', error.message);
+    
+    if (error.code === 'auth/id-token-expired') {
+      return sendError(res, 'Token expired', 401);
+    }
+    
+    if (error.code === 'auth/id-token-revoked') {
+      return sendError(res, 'Token revoked', 401);
+    }
+
     return sendError(res, 'Invalid or expired token', 401);
   }
 };
