@@ -98,8 +98,8 @@ export class PortfolioService {
 
     return {
       totalPortfolioValue: Math.round(totalPortfolioValue * 100) / 100, // 2 ondalık basamak
-      dailyChange: null, // Şimdilik boş
-      totalProfitLoss: null, // Şimdilik boş
+      dailyChange: null, // Şimdilik boş socket verisiile karsılastırmak icin
+      totalProfitLoss: null, // Şimdilik boş socket verisiile karsılastırmak icin
       topAsset,
       assetNumber,
       distribution,
