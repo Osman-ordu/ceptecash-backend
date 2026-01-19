@@ -48,9 +48,18 @@ export const authMiddleware = async (
       return sendError(res, 'User not found', 404);
     }
 
+    // firebaseUid kontrolü (where clause'da kullandığımız için null olamaz ama TypeScript için)
+    if (!user.firebaseUid) {
+      return sendError(res, 'User firebaseUid not found', 404);
+    }
+
     // Request'e user bilgisini ekle
     req.userId = user.id;
-    req.user = user;
+    req.user = {
+      id: user.id,
+      email: user.email,
+      firebaseUid: user.firebaseUid,
+    };
 
     next();
   } catch (error: any) {

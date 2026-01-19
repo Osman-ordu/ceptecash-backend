@@ -5,6 +5,7 @@ import { errorMiddleware } from './middlewares/error.middleware';
 import quickTransactionsRoutes from './modules/quickTransactions/quickTransactions.routes';
 import transactionRoutes from './modules/transaction/transaction.routes';
 import firebaseAuthRoutes from './modules/auth/auth.routes';
+import portfolioRoutes from './modules/portfolio/portfolio.routes';
 import { env } from './config/env';
 
 const app: Application = express();
@@ -27,7 +28,9 @@ if (env.NODE_ENV === 'development') {
 }
 
 // Routes
+// ÖNEMLİ: Daha spesifik route'lar önce tanımlanmalı
 app.use('/api/transactions/quick-transaction', quickTransactionsRoutes);
+app.use('/api/portfolio', portfolioRoutes);
 app.use('/transactions', transactionRoutes);
 app.use('/auth', firebaseAuthRoutes);
 app.use('/api', firebaseAuthRoutes); // /api/register-profile için
