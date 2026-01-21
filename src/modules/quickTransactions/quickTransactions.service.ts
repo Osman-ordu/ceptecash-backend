@@ -50,6 +50,26 @@ export class QuickTransactionsService {
   }
 
   /**
+   * Kullanıcıya özel son yapılan quick transaction'ı getir
+   */
+  async getLatestQuickTransaction(userId: string): Promise<QuickTransaction | null> {
+    const transaction = await (prisma as any).quickTransaction.findFirst({
+      where: {
+        userId,
+      },
+      orderBy: {
+        transactionDate: 'desc',
+      },
+    });
+
+    if (!transaction) {
+      return null;
+    }
+
+    return this.mapPrismaToSchema(transaction as PrismaQuickTransaction);
+  }
+
+  /**
    * Yeni quick transaction oluştur
    */
   async createQuickTransaction(
