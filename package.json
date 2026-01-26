@@ -10,7 +10,8 @@
     "start:prod": "node dist/server.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "test:socket": "node test-socket.js"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -27,6 +28,8 @@
     "firebase-admin": "^13.6.0",
     "jsonwebtoken": "^9.0.3",
     "morgan": "^1.10.0",
+    "socket.io": "^4.7.5",
+    "ws": "^8.18.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {
@@ -36,8 +39,11 @@
     "@types/jsonwebtoken": "^9.0.6",
     "@types/morgan": "^1.9.9",
     "@types/node": "^20.10.5",
+    "@types/ws": "^8.5.10",
     "prisma": "^6.0.0",
+    "socket.io-client": "^4.7.5",
     "tsx": "^4.7.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "wscat": "^5.1.0"
   }
 }
