@@ -26,7 +26,7 @@ export const authMiddleware = async (
 
     const token = authHeader.split(' ')[1];
 
-    if (!token) {
+  if (!token) {
       return sendError(res, 'Token missing', 401);
     }
 
@@ -46,7 +46,7 @@ export const authMiddleware = async (
 
     if (!user) {
       return sendError(res, 'User not found', 404);
-    }
+  }
 
     // firebaseUid kontrolü (where clause'da kullandığımız için null olamaz ama TypeScript için)
     if (!user.firebaseUid) {

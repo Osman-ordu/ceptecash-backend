@@ -7,6 +7,7 @@ import transactionRoutes from './modules/transaction/transaction.routes';
 import firebaseAuthRoutes from './modules/auth/auth.routes';
 import portfolioRoutes from './modules/portfolio/portfolio.routes';
 import userRoutes from './modules/user/user.routes';
+import marketRoutes from './modules/market/api/market.routes';
 import { env } from './config/env';
 
 const app: Application = express();
@@ -33,6 +34,7 @@ if (env.NODE_ENV === 'development') {
 app.use('/api/transactions/quick-transaction', quickTransactionsRoutes);
 app.use('/api/portfolio', portfolioRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/market', marketRoutes); // Market status endpoint
 app.use('/transactions', transactionRoutes);
 app.use('/auth', firebaseAuthRoutes);
 app.use('/api', firebaseAuthRoutes); // /api/register-profile için
