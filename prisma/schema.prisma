@@ -59,6 +59,10 @@ model User {
   emailVerified   Boolean  @default(false)
   isVerified   Boolean  @default(false)
 
+  // Soft delete fields
+  deletedAt    DateTime?  // null = aktif, DateTime = silinmiş
+  isActive     Boolean    @default(true)  // Ekstra kontrol için
+
   holdings     Holding[]
   ledger       LedgerTransaction[]
   alerts       Alert[]
@@ -67,6 +71,8 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([deletedAt])  // Soft delete query'leri için performans
 }
 
 //////////////////////

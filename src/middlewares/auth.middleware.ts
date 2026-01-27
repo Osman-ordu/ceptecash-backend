@@ -34,19 +34,28 @@ export const authMiddleware = async (
     const decodedToken = await firebaseAdmin.auth().verifyIdToken(token);
     const firebaseUid = decodedToken.uid;
 
-    // Veritabanından kullanıcıyı bul
-    const user = await prisma.user.findUnique({
-      where: { firebaseUid },
+    // Veritabanından kullanıcıyı bul (sadece aktif kullanıcılar)
+    const user = await prisma.user.findFirst({
+      where: { 
+        firebaseUid,
+        deletedAt: null, // Sadece silinmemiş kullanıcılar
+      },
       select: {
         id: true,
         email: true,
         firebaseUid: true,
+        deletedAt: true, // Kontrol için
       },
     });
 
     if (!user) {
-      return sendError(res, 'User not found', 404);
-  }
+      return sendError(res, 'User not found or account has been deleted', 404);
+    }
+
+    // Ekstra güvenlik: deletedAt kontrolü
+    if (user.deletedAt) {
+      return sendError(res, 'Account has been deleted', 403);
+    }
 
     // firebaseUid kontrolü (where clause'da kullandığımız için null olamaz ama TypeScript için)
     if (!user.firebaseUid) {
